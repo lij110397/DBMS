@@ -12,8 +12,6 @@
 //宏定义
 #define UNLEN 5//用户名最大长度
 #define PWDLEN 10//密码最大长度
-#define CT //创建表的宏
-#define DT //删除表
 //命名空间
 using namespace  std;
 //结构体
@@ -52,26 +50,38 @@ typedef struct
 //全局变量
 int a[] = {4, 5, 3, 2, 4, 5, 1};//加密用整型数组
 //功能函数
+/*用户管理模块*/
 string EnterPassword();//输入密码，返回值为输入的密码
 bool JudgeUser(string username,string password);//判断用户名和密码是否存在、是否匹配
 void encryption(string& c, int a[]);//对写入文件的密码进行加密操作
 void decode(string& c,int a[]);//解密
 int regUser(string username,string password);//注册用户
+
 int sqlAnalysis(string sql,vector<string> &sqlkey);//解析sql语法并返回各部分内容
+/*数据库管理模块*/
+int showdatabases();//查看当前用户下所有数据库
 int createDBEntity(string DBname);//创建数据库实体
 int renameDBEntity(string newName,string oldName);//重命名数据库实体
 int dropDBEntity(string DBname);//删除数据库实体
 int useDBEntity(string DBname);//打开并使用数据库
 int initDBEntity(string DBname);//初始化数据库
 int backupDBEntity(string DBname);//备份数据库
+/*表管理模块*/
 int createTable(string TBname,string DBname,vector<Field> fields);//创建表
 int dropTable(string TBname,string DBname);//删除表
 int deleteField(string TBname,string DBname,string colname);//删除表中一列
 int addField(string TBname,string DBname,Field col);//增加一列
-int modifyCol(string TBname,string DBname,string oldname,string newname,string type,int length);//修改一列的名称及类型
+int modifyCol(string TBname,string DBname,string oldname,string newname,string type,int length,bool notnull);//修改一列的名称及类型
 int renameTable(string TBname,string DBname,string newname);//重命名表
 int removePri(string TBname,string DBname);//删除主键
 int addPri(string TBname,string DBname,string priname,vector<string> colnames);//为一到多列添加主键
+/*记录管理模块*/
+int insertRecord(string TBname,string DBname,vector<string> colnames);//插入记录TODO:
+int updateRecord(string TBname,string DBname,string colname);//更新记录TODO:
+int selectRecord(string TBname,string DBname,vector<string> colnames);//查询记录TODO:
+int deleteRecord(string TBname,string DBname);//删除记录TODO:
+/*索引管理模块*/
+int createIndex(string TBname,string DBname,string indexname,vector<string> colnames);//建立索引
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
@@ -116,10 +126,10 @@ int main(int argc, char *argv[])
 				
 				getline(cin,sql);//TODO:暂时没考虑换行的问题，即一句SQL语句是在一行中写完的，以分号结尾
                 sqlType = sqlAnalysis(sql,sqlkey);
-				switch()
+                switch(sqlType)
 				{
 				case 0://创建数据库
-                    switch(createDBEntity(sqlkey.at((1))))//TODO:
+                    switch(createDBEntity(sqlkey.at(1)))//TODO:
 					{
 					case 0:
 						cout<<"创建数据库成功！"<<endl;
@@ -129,7 +139,7 @@ int main(int argc, char *argv[])
 					}
 					break;
 				case 1://重命名数据库，语法规则：RENAME database olddbname TO newdbname
-                    switch(renameDBEntity())//TODO:
+                    switch(renameDBEntity(sqlkey.at(1),))//TODO:
 					{
 					case 0:
 						cout<<"重命名数据库成功！"<<endl;
@@ -139,7 +149,7 @@ int main(int argc, char *argv[])
 					}
 					break;
 				case 2:
-                    switch(dropDBEntity(sqlkey.at((1))))//TODO:
+                    switch(dropDBEntity(sqlkey.at(1)))//TODO:
 					{
 					case 0:
 						cout<<"删除数据库成功！"<<endl;
@@ -149,21 +159,15 @@ int main(int argc, char *argv[])
 					}
 					break;
 				case 3:
-                    switch(useDBEntity(sqlkey.at((1))))//TODO:
+                    switch(useDBEntity(sqlkey.at(1)))//TODO:
 					{
 					case 0:
-                        curDBname = useDBEntity(sqlkey.at((1)));
+                        curDBname = useDBEntity(sqlkey.at(1));
 						cout<<"更换数据库成功！"<<endl;
 						break;
 					default:
 						break;
 					}
-					break;
-				case CT:
-					
-					break;
-				case DT:
-					
 					break;
 				default:
 					break;
@@ -411,7 +415,7 @@ int addField(string TBname,string DBname,Field col)//增加一列
 
 }
 
-int modifyCol(string TBname,string DBname,string oldname,string newname,string type,int length)//修改一列的名称及类型
+int modifyCol(string TBname,string DBname,string oldname,string newname,string type,int length,bool notnull)//修改一列的名称及类型
 {
 
 }
