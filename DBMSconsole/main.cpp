@@ -6,8 +6,12 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDir>
+#include <vector>
 #define UNLEN 5//用户名最大长度
 #define PWDLEN 10//密码最大长度
+#define CT //创建表的宏
+#define DT //删除表
+#define RT //重命名表
 using namespace  std;
 int a[] = {4, 5, 3, 2, 4, 5, 1};//加密用整型数组
 string EnterPassword();//输入密码，返回值为输入的密码
@@ -15,14 +19,20 @@ bool JudgeUser(string username,string password);//判断用户名和密码是否存在、是否
 void encryption(string& c, int a[]);//对写入文件的密码进行加密操作
 void decode(string& c,int a[]);//解密
 int regUser(string username,string password);//注册用户
+int sqlAnalysis(string sql,vector<string> &sqlkey);//解析sql语法并返回各部分内容
+int createDBEntity(string DBname);//创建数据库实体
+int renameDBEntity(string newName,string oldName);//重命名数据库实体
+int dropDBEntity(string DBname);//删除数据库实体
+int useDBEntity(string DBname);//打开并使用数据库
+int initDBEntity(string DBname);//初始化数据库
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
     string username = "";
-    string password;
+    string password = "";
 
-    switch(regUser("zzz00","xyzzzzzz"))
+    switch(regUser("zzz00","xyzzzzzz"))//测试用
     {
     case 0:
         cout<<"注册成功！"<<endl;
@@ -50,7 +60,69 @@ int main(int argc, char *argv[])
         if(JudgeUser(username,password))
         {
             cout<<"登录成功！"<<endl;
-            break;
+			while(1)
+			{
+				int sqlType;//sql命令的类型，包括创建数据库、创建表、添加字段等正确操作，之后可扩展添加语法错误检查
+				string sql;//输入的sql命令
+				vector<string> sqlkey;
+				
+				getline(cin,sql);//TODO:暂时没考虑换行的问题，即一句SQL语句是在一行中写完的，以分号结尾
+				sqlType = sqlAnalysis(sql,sqlkey);
+				switch()
+				{
+				case 0://创建数据库
+					switch(createDBEntity())
+					{
+					case 0:
+						cout<<"创建数据库成功！"<<endl;
+						break;
+					default:
+						break;
+					}
+					break;
+				case 1://重命名数据库，语法规则：RENAME database olddbname TO newdbname
+					switch(renameDBEntity())
+					{
+					case 0:
+						cout<<"重命名数据库成功！"<<endl;
+						break;
+					default:
+						break;
+					}
+					break;
+				case 2:
+					switch(dropDBEntity())
+					{
+					case 0:
+						cout<<"删除数据库成功！"<<endl;
+						break;
+					default:
+						break;
+					}
+					break;
+				case 3:
+					switch(useDBEntity())
+					{
+					case 0:
+						cout<<"更换数据库成功！"<<endl;
+						break;
+					default:
+						break;
+					}
+					break;
+				case CT:
+					
+					break;
+				case DT:
+					
+					break;
+				case RT:
+					
+					break;
+				default:
+					break;
+				}
+			}
         }
         else
         {
@@ -60,6 +132,7 @@ int main(int argc, char *argv[])
 
     return a.exec();
 }
+
 string EnterPassword()
 {
     char password[100];
@@ -91,6 +164,7 @@ string EnterPassword()
     string p(password);
     return p;
 }
+
 bool JudgeUser(string username,string password)
 {
     int usernum = 0;
@@ -131,6 +205,7 @@ bool JudgeUser(string username,string password)
     inputFile1.close();
     return false;
 }
+
 void encryption(string& c, int a[]){
 
     for(int i = 0, j = 0; c[j];j++, i = (i + 1) % 7){
@@ -140,6 +215,7 @@ void encryption(string& c, int a[]){
         c[j] %= 90;
     }
 }
+
 void decode(string& c,int a[]){
 
     for(int i = 0, j = 0; c[j];j++, i = (i + 1) % 7){
@@ -152,6 +228,7 @@ void decode(string& c,int a[]){
         }
     }
 }
+
 int regUser(string username,string password)
 {
     if(username.size()>(unsigned)UNLEN||password.size()>(unsigned)PWDLEN) return 2;
@@ -229,4 +306,36 @@ int regUser(string username,string password)
         if(ok) return 0;
         else return 3;
     }
+}
+
+int sqlAnalysis(string sql,vector<string> &sqlkey)
+{
+	
+}
+
+int createDBEntity(string DBname)
+{
+	
+}
+
+int renameDBEntity(string newName,string oldName)
+{
+	
+}
+
+int dropDBEntity(string DBname)
+{
+	
+}
+
+int useDBEntity(string DBname)
+{
+	
+}
+
+int initDBEntity(string DBname)//1代表初始化失败，0代表成功
+{
+	if(dropDBEntity(DBname)!=0) return 1;
+	if(createDBEntity(DBname)!=0) return 1;
+	return 0;
 }
