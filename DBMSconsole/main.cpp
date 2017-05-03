@@ -1,4 +1,4 @@
-//°üº¬ÎÄ¼ş
+//åŒ…å«æ–‡ä»¶
 #include <QCoreApplication>
 #include <iostream>
 #include <string>
@@ -9,12 +9,13 @@
 #include <QDir>
 #include <vector>
 #include <set>
-//ºê¶¨Òå
-#define UNLEN 5//ÓÃ»§Ãû×î´ó³¤¶È
-#define PWDLEN 10//ÃÜÂë×î´ó³¤¶È
-//ÃüÃû¿Õ¼ä
+#include <QDebug>
+//å®å®šä¹‰
+#define UNLEN 5//ç”¨æˆ·åæœ€å¤§é•¿åº¦
+#define PWDLEN 10//å¯†ç æœ€å¤§é•¿åº¦
+//å‘½åç©ºé—´
 using namespace  std;
-//½á¹¹Ìå
+//ç»“æ„ä½“
 typedef struct
 {
     int year;
@@ -26,62 +27,62 @@ typedef struct
 }Date;
 typedef struct
 {
-    string name;//×Ö¶ÎÃû
-    string type;//ÀàĞÍ
-    int length;//³¤¶È
+    string name;//å­—æ®µå
+    string type;//ç±»å‹
+    int length;//é•¿åº¦
     int constraint[7];
-    /*ÆßÖÖÔ¼ÊøÌõ¼ş£¬ÖµÎª0´ú±íÎŞ£¬ÆäÓà´ú±íÓĞ
-     * 0´ú±íÖ÷¼ü£¬1´ú±íÍâ¼ü£¬2´ú±íunique£¬
-     * 3´ú±ícheck£¨1´ú±í¼ì²éÖµÊÇ·ñ´æÔÚÓÚsetÖĞ£¬2´ú±í¼ì²éÖµÊÇ·ñÔÚ×î´óºÍ×îĞ¡ÖµÖ®¼ä£¬3´ú±íÊÇ·ñÔÚÁ½ÈÕÆÚ·¶Î§ÖĞ£©£¬
-     * 4´ú±ídefault£¨1´ú±íÕûĞÍ£¬2´ú±í×Ö·û´®£¬3´ú±íÈÕÆÚ£©£¬
-     * 5´ú±í·Ç¿Õ£¬
-     * 6´ú±í×ÔÔö*/
+    /*ä¸ƒç§çº¦æŸæ¡ä»¶ï¼Œå€¼ä¸º0ä»£è¡¨æ— ï¼Œå…¶ä½™ä»£è¡¨æœ‰
+     * 0ä»£è¡¨ä¸»é”®ï¼Œ1ä»£è¡¨å¤–é”®ï¼Œ2ä»£è¡¨uniqueï¼Œ
+     * 3ä»£è¡¨checkï¼ˆ1ä»£è¡¨æ£€æŸ¥å€¼æ˜¯å¦å­˜åœ¨äºsetä¸­ï¼Œ2ä»£è¡¨æ£€æŸ¥å€¼æ˜¯å¦åœ¨æœ€å¤§å’Œæœ€å°å€¼ä¹‹é—´ï¼Œ3ä»£è¡¨æ˜¯å¦åœ¨ä¸¤æ—¥æœŸèŒƒå›´ä¸­ï¼‰ï¼Œ
+     * 4ä»£è¡¨defaultï¼ˆ1ä»£è¡¨æ•´å‹ï¼Œ2ä»£è¡¨å­—ç¬¦ä¸²ï¼Œ3ä»£è¡¨æ—¥æœŸï¼‰ï¼Œ
+     * 5ä»£è¡¨éç©ºï¼Œ
+     * 6ä»£è¡¨è‡ªå¢*/
 
-    set<string> scope;//È¡ÖµµÄ¼¯ºÏ
-    Date mindate;//×îÔçÈÕÆÚ
-    Date maxdate;//×îÍíÈÕÆÚ
-    int minvalue;//×îĞ¡Öµ
-    int maxvalue;//×î´óÖµ
+    set<string> scope;//å–å€¼çš„é›†åˆ
+    Date mindate;//æœ€æ—©æ—¥æœŸ
+    Date maxdate;//æœ€æ™šæ—¥æœŸ
+    int minvalue;//æœ€å°å€¼
+    int maxvalue;//æœ€å¤§å€¼
 
-    int defaultint;//Ä¬ÈÏÕûĞÍ
-    string defaultchar;//Ä¬ÈÏ×Ö·û´®
-    Date defaultdate;//Ä¬ÈÏÈÕÆÚ
+    int defaultint;//é»˜è®¤æ•´å‹
+    string defaultchar;//é»˜è®¤å­—ç¬¦ä¸²
+    Date defaultdate;//é»˜è®¤æ—¥æœŸ
 }Field;
-//È«¾Ö±äÁ¿
-int a[] = {4, 5, 3, 2, 4, 5, 1};//¼ÓÃÜÓÃÕûĞÍÊı×é
-//¹¦ÄÜº¯Êı
-/*ÓÃ»§¹ÜÀíÄ£¿é*/
-string EnterPassword();//ÊäÈëÃÜÂë£¬·µ»ØÖµÎªÊäÈëµÄÃÜÂë
-bool JudgeUser(string username,string password);//ÅĞ¶ÏÓÃ»§ÃûºÍÃÜÂëÊÇ·ñ´æÔÚ¡¢ÊÇ·ñÆ¥Åä
-void encryption(string& c, int a[]);//¶ÔĞ´ÈëÎÄ¼şµÄÃÜÂë½øĞĞ¼ÓÃÜ²Ù×÷
-void decode(string& c,int a[]);//½âÃÜ
-int regUser(string username,string password);//×¢²áÓÃ»§
+//å…¨å±€å˜é‡
+int a[] = {4, 5, 3, 2, 4, 5, 1};//åŠ å¯†ç”¨æ•´å‹æ•°ç»„
+//åŠŸèƒ½å‡½æ•°
+/*ç”¨æˆ·ç®¡ç†æ¨¡å—*/
+string EnterPassword();//è¾“å…¥å¯†ç ï¼Œè¿”å›å€¼ä¸ºè¾“å…¥çš„å¯†ç 
+bool JudgeUser(string username,string password);//åˆ¤æ–­ç”¨æˆ·åå’Œå¯†ç æ˜¯å¦å­˜åœ¨ã€æ˜¯å¦åŒ¹é…
+void encryption(string& c, int a[]);//å¯¹å†™å…¥æ–‡ä»¶çš„å¯†ç è¿›è¡ŒåŠ å¯†æ“ä½œ
+void decode(string& c,int a[]);//è§£å¯†
+int regUser(string username,string password);//æ³¨å†Œç”¨æˆ·
 
-int sqlAnalysis(string sql,vector<string> &sqlkey);//½âÎösqlÓï·¨²¢·µ»Ø¸÷²¿·ÖÄÚÈİ
-/*Êı¾İ¿â¹ÜÀíÄ£¿é*/
-int showdatabases();//²é¿´µ±Ç°ÓÃ»§ÏÂËùÓĞÊı¾İ¿â
-int createDBEntity(string DBname);//´´½¨Êı¾İ¿âÊµÌå
-int renameDBEntity(string newName,string oldName);//ÖØÃüÃûÊı¾İ¿âÊµÌå
-int dropDBEntity(string DBname);//É¾³ıÊı¾İ¿âÊµÌå
-int useDBEntity(string DBname);//´ò¿ª²¢Ê¹ÓÃÊı¾İ¿â
-int initDBEntity(string DBname);//³õÊ¼»¯Êı¾İ¿â
-int backupDBEntity(string DBname);//±¸·İÊı¾İ¿â
-/*±í¹ÜÀíÄ£¿é*/
-int createTable(string TBname,string DBname,vector<Field> fields);//´´½¨±í
-int dropTable(string TBname,string DBname);//É¾³ı±í
-int deleteField(string TBname,string DBname,string colname);//É¾³ı±íÖĞÒ»ÁĞ
-int addField(string TBname,string DBname,Field col);//Ôö¼ÓÒ»ÁĞ
-int modifyCol(string TBname,string DBname,string oldname,string newname,string type,int length,bool notnull);//ĞŞ¸ÄÒ»ÁĞµÄÃû³Æ¼°ÀàĞÍ
-int renameTable(string TBname,string DBname,string newname);//ÖØÃüÃû±í
-int removePri(string TBname,string DBname);//É¾³ıÖ÷¼ü
-int addPri(string TBname,string DBname,string priname,vector<string> colnames);//ÎªÒ»µ½¶àÁĞÌí¼ÓÖ÷¼ü
-/*¼ÇÂ¼¹ÜÀíÄ£¿é*/
-int insertRecord(string TBname,string DBname,vector<string> colnames);//²åÈë¼ÇÂ¼TODO:
-int updateRecord(string TBname,string DBname,string colname);//¸üĞÂ¼ÇÂ¼TODO:
-int selectRecord(string TBname,string DBname,vector<string> colnames);//²éÑ¯¼ÇÂ¼TODO:
-int deleteRecord(string TBname,string DBname);//É¾³ı¼ÇÂ¼TODO:
-/*Ë÷Òı¹ÜÀíÄ£¿é*/
-int createIndex(string TBname,string DBname,string indexname,vector<string> colnames);//½¨Á¢Ë÷Òı
+int sqlAnalysis(string sql,vector<string> &sqlkey);//è§£æsqlè¯­æ³•å¹¶è¿”å›å„éƒ¨åˆ†å†…å®¹
+/*æ•°æ®åº“ç®¡ç†æ¨¡å—*/
+int showdatabases();//æŸ¥çœ‹å½“å‰ç”¨æˆ·ä¸‹æ‰€æœ‰æ•°æ®åº“
+int createDBEntity(string DBname);//åˆ›å»ºæ•°æ®åº“å®ä½“
+int renameDBEntity(string newName,string oldName);//é‡å‘½åæ•°æ®åº“å®ä½“
+int dropDBEntity(string DBname);//åˆ é™¤æ•°æ®åº“å®ä½“
+int useDBEntity(string DBname);//æ‰“å¼€å¹¶ä½¿ç”¨æ•°æ®åº“
+int initDBEntity(string DBname);//åˆå§‹åŒ–æ•°æ®åº“
+int backupDBEntity(string DBname);//å¤‡ä»½æ•°æ®åº“
+/*è¡¨ç®¡ç†æ¨¡å—*/
+int createTable(string TBname,string DBname,vector<Field> fields);//åˆ›å»ºè¡¨
+int dropTable(string TBname,string DBname);//åˆ é™¤è¡¨
+int deleteField(string TBname,string DBname,string colname);//åˆ é™¤è¡¨ä¸­ä¸€åˆ—
+int addField(string TBname,string DBname,Field col);//å¢åŠ ä¸€åˆ—
+int modifyCol(string TBname,string DBname,string oldname,string newname,string type,int length,bool notnull);//ä¿®æ”¹ä¸€åˆ—çš„åç§°åŠç±»å‹
+int renameTable(string TBname,string DBname,string newname);//é‡å‘½åè¡¨
+int removePri(string TBname,string DBname);//åˆ é™¤ä¸»é”®
+int addPri(string TBname,string DBname,string priname,vector<string> colnames);//ä¸ºä¸€åˆ°å¤šåˆ—æ·»åŠ ä¸»é”®
+/*è®°å½•ç®¡ç†æ¨¡å—*/
+int insertRecord(string TBname,string DBname,vector<string> colnames);//æ’å…¥è®°å½•TODO:
+int updateRecord(string TBname,string DBname,string colname);//æ›´æ–°è®°å½•TODO:
+int selectRecord(string TBname,string DBname,vector<string> colnames);//æŸ¥è¯¢è®°å½•TODO:
+int deleteRecord(string TBname,string DBname);//åˆ é™¤è®°å½•TODO:
+/*ç´¢å¼•ç®¡ç†æ¨¡å—*/
+int createIndex(string TBname,string DBname,string indexname,vector<string> colnames);//å»ºç«‹ç´¢å¼•
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
@@ -89,19 +90,19 @@ int main(int argc, char *argv[])
     string username = "";
     string password = "";
 
-    switch(regUser("zzz00","xyzzzzzz"))//TODO:²âÊÔÓÃ
+    switch(regUser("zzz00","xyzzzzzz"))//TODO:æµ‹è¯•ç”¨
     {
     case 0:
-        cout<<"×¢²á³É¹¦£¡"<<endl;
+        cout<<"Registion success!"<<endl;
         break;
     case 1:
-        cout<<"¸ÃÓÃ»§ÃûÒÑ¾­´æÔÚ,×¢²áÊ§°Ü£¡"<<endl;
+        cout<<"Registion failed because this user exists"<<endl;
         break;
     case 2:
-        cout<<"ÓÃ»§Ãû»òÕßÃÜÂë²»·ûºÏÒªÇó£¬×¢²áÊ§°Ü£¡"<<endl;//ÕËºÅ×î¶à5Î»×îÉÙ1Î»£¬ÃÜÂë×î¶à10Î»×îÉÙ1Î»£¬Ö»ÄÜÓÉ×ÖÄ¸£¨Çø·Ö´óĞ¡Ğ´£©ºÍÊı×Ö×é³É
+        cout<<"Registion failed because account or password is not valid"<<endl;//è´¦å·æœ€å¤š5ä½æœ€å°‘1ä½ï¼Œå¯†ç æœ€å¤š10ä½æœ€å°‘1ä½ï¼Œåªèƒ½ç”±å­—æ¯ï¼ˆåŒºåˆ†å¤§å°å†™ï¼‰å’Œæ•°å­—ç»„æˆ
         break;
     case 3:
-        cout<<"ÏµÍ³´íÎóµ¼ÖÂ×¢²áÊ§°Ü£¡"<<endl;//Ò»°ãÊÇÎÄ¼ş²»´æÔÚ
+        cout<<"Registion failed because of system error"<<endl;//ä¸€èˆ¬æ˜¯æ–‡ä»¶ä¸å­˜åœ¨
         break;
     default:
         break;
@@ -109,40 +110,40 @@ int main(int argc, char *argv[])
 
     while(1)
     {
-        cout<<"ÇëÊäÈëÕËºÅ£º";//Ä¬ÈÏÕËºÅÊÇroot
+        cout<<"Please input account";//é»˜è®¤è´¦å·æ˜¯root
         cin>>username;
         getchar();
-        cout<<"ÇëÊäÈëÃÜÂë£º";//Ä¬ÈÏÃÜÂëÊÇroot
+        cout<<"Please input password";//é»˜è®¤å¯†ç æ˜¯root
         password = EnterPassword();
         if(JudgeUser(username,password))
         {
-            cout<<"µÇÂ¼³É¹¦£¡"<<endl;
+            cout<<"Logon success"<<endl;
             string curDBname = "";
 			while(1)
 			{
-				int sqlType;//sqlÃüÁîµÄÀàĞÍ£¬°üÀ¨´´½¨Êı¾İ¿â¡¢´´½¨±í¡¢Ìí¼Ó×Ö¶ÎµÈÕıÈ·²Ù×÷£¬Ö®ºó¿ÉÀ©Õ¹Ìí¼ÓÓï·¨´íÎó¼ì²é
-				string sql;//ÊäÈëµÄsqlÃüÁî
+				int sqlType;//sqlå‘½ä»¤çš„ç±»å‹ï¼ŒåŒ…æ‹¬åˆ›å»ºæ•°æ®åº“ã€åˆ›å»ºè¡¨ã€æ·»åŠ å­—æ®µç­‰æ­£ç¡®æ“ä½œï¼Œä¹‹åå¯æ‰©å±•æ·»åŠ è¯­æ³•é”™è¯¯æ£€æŸ¥
+				string sql;//è¾“å…¥çš„sqlå‘½ä»¤
 				vector<string> sqlkey;
 				
-				getline(cin,sql);//TODO:ÔİÊ±Ã»¿¼ÂÇ»»ĞĞµÄÎÊÌâ£¬¼´Ò»¾äSQLÓï¾äÊÇÔÚÒ»ĞĞÖĞĞ´ÍêµÄ£¬ÒÔ·ÖºÅ½áÎ²
+				getline(cin,sql);//TODO:æš‚æ—¶æ²¡è€ƒè™‘æ¢è¡Œçš„é—®é¢˜ï¼Œå³ä¸€å¥SQLè¯­å¥æ˜¯åœ¨ä¸€è¡Œä¸­å†™å®Œçš„ï¼Œä»¥åˆ†å·ç»“å°¾
                 sqlType = sqlAnalysis(sql,sqlkey);
                 switch(sqlType)
 				{
-				case 0://´´½¨Êı¾İ¿â
+                case 0: //åˆ›å»ºæ•°æ®åº“
                     switch(createDBEntity(sqlkey.at(1)))//TODO:
 					{
 					case 0:
-						cout<<"´´½¨Êı¾İ¿â³É¹¦£¡"<<endl;
+                        cout<<"Create database success!"<<endl;
 						break;
 					default:
 						break;
 					}
 					break;
-				case 1://ÖØÃüÃûÊı¾İ¿â£¬Óï·¨¹æÔò£ºRENAME database olddbname TO newdbname
-                    switch(renameDBEntity(sqlkey.at(1),))//TODO:
+                case 1: //é‡å‘½åæ•°æ®åº“ï¼Œè¯­æ³•è§„åˆ™ï¼šRENAME database olddbname TO newdbname
+                    switch(renameDBEntity(sqlkey.at(1), NULL))//TODO:
 					{
 					case 0:
-						cout<<"ÖØÃüÃûÊı¾İ¿â³É¹¦£¡"<<endl;
+                        cout<<"Rename database success!"<<endl;
 						break;
 					default:
 						break;
@@ -152,7 +153,7 @@ int main(int argc, char *argv[])
                     switch(dropDBEntity(sqlkey.at(1)))//TODO:
 					{
 					case 0:
-						cout<<"É¾³ıÊı¾İ¿â³É¹¦£¡"<<endl;
+                        cout<<"Delete database success!"<<endl;
 						break;
 					default:
 						break;
@@ -163,7 +164,7 @@ int main(int argc, char *argv[])
 					{
 					case 0:
                         curDBname = useDBEntity(sqlkey.at(1));
-						cout<<"¸ü»»Êı¾İ¿â³É¹¦£¡"<<endl;
+                        cout<<"Change database success!"<<endl;
 						break;
 					default:
 						break;
@@ -176,7 +177,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            cout<<"ÕËºÅ»òÕßÃÜÂëÊäÈë´íÎó£¬ÇëÖØĞÂÊäÈë..."<<endl;
+            cout<<"Acount or passeord is not valid,please reenter"<<endl;
         }
     }
 
@@ -191,7 +192,7 @@ string EnterPassword()
     {
         char ch;
         ch=getch();
-        if(ch==8) //ÍË¸ñ¼ü
+        if(ch==8) //é€€æ ¼é”®
         {
             if(index!=0)
             {
@@ -199,13 +200,13 @@ string EnterPassword()
                 index--;
             }
         }
-        else if(ch=='\r') //»Ø³µ¼ü
+        else if(ch=='\r') //å›è½¦é”®
         {
             password[index]='\0';
             cout<<endl;
             break;
         }
-        else if((ch<='Z'&&ch>='A')||(ch<='z'&&ch>='a')||(ch<='9'&&ch>='0'))//ÃÜÂëÖ»Ö§³ÖÓ¢ÎÄ×ÖÄ¸£¨´óĞ¡Ğ´¾ù¿É£©ºÍÊı×Ö
+        else if((ch<='Z'&&ch>='A')||(ch<='z'&&ch>='a')||(ch<='9'&&ch>='0'))//å¯†ç åªæ”¯æŒè‹±æ–‡å­—æ¯ï¼ˆå¤§å°å†™å‡å¯ï¼‰å’Œæ•°å­—
         {
             cout<<"*";
             password[index++]=ch;
@@ -219,25 +220,25 @@ bool JudgeUser(string username,string password)
 {
     int usernum = 0;
     QString u,p;
-    // Ö¸¶¨ÎÄ¼ş£º
-    QFile inputFile("D:/2qt projects/DBMSconsole/usernum.txt");
-    // Ö»¶Á´ò¿ª£º
+    // æŒ‡å®šæ–‡ä»¶ï¼š
+    QFile inputFile("./usernum.txt");
+    // åªè¯»æ‰“å¼€ï¼š
     if(!inputFile.open(QIODevice::ReadOnly))
     {
-        cout<<"´ò¿ªusernum.txtÎÄ¼şÊ§°Ü£¡"<<endl;
+        cout<<"Failed to open usernum.txt"<<endl;
         return false;
     }
-    // ÎÄ±¾Á÷£º
+    // æ–‡æœ¬æµï¼š
     QTextStream in(&inputFile);
-    // ½«ÎÄ±¾Á÷¶ÁÈ¡µ½×Ö·û´®ÖĞ£º
+    // å°†æ–‡æœ¬æµè¯»å–åˆ°å­—ç¬¦ä¸²ä¸­ï¼š
     QString line = in.readAll();
-    // ¹Ø±ÕÎÄ±¾Á÷£º
+    // å…³é—­æ–‡æœ¬æµï¼š
     inputFile.close();
     usernum = line.toInt();
-    QFile inputFile1("D:/2qt projects/DBMSconsole/user.txt");
+    QFile inputFile1("./user.txt");
     if(!inputFile1.open(QIODevice::ReadOnly))
     {
-        cout<<"´ò¿ªuser.txtÎÄ¼şÊ§°Ü£¡"<<endl;
+        cout<<"Failed to open user.txt"<<endl;
         return false;
     }
     QTextStream in1(&inputFile1);
@@ -291,25 +292,26 @@ int regUser(string username,string password)
         if(!((password[i]<='z'&&password[i]>='a')||(password[i]<='Z'&&password[i]>='A')||(password[i]<='9'&&password[i]>='0'))) return 2;
     }
     int usernum = 0;
-    // Ö¸¶¨ÎÄ¼ş£º
-    QFile inputFile("D:/2qt projects/DBMSconsole/usernum.txt");
-    // Ö»¶Á´ò¿ª£º
+    // æŒ‡å®šæ–‡ä»¶ï¼š
+    QFile inputFile("./usernum.txt");
+    // åªè¯»æ‰“å¼€ï¼š
+    qDebug()<<QDir::currentPath();
     if(!inputFile.open(QIODevice::ReadOnly))
     {
-        cout<<"´ò¿ªusernum.txtÎÄ¼şÊ§°Ü£¡"<<endl;
+        cout<<"Failed to open usernum.txt"<<endl;
         return 3;
     }
-    // ÎÄ±¾Á÷£º
+    // æ–‡æœ¬æµï¼š
     QTextStream in(&inputFile);
-    // ½«ÎÄ±¾Á÷¶ÁÈ¡µ½×Ö·û´®ÖĞ£º
+    // å°†æ–‡æœ¬æµè¯»å–åˆ°å­—ç¬¦ä¸²ä¸­ï¼š
     QString line = in.readAll();
-    // ¹Ø±ÕÎÄ±¾Á÷£º
+    // å…³é—­æ–‡æœ¬æµï¼š
     inputFile.close();
     usernum = line.toInt();
-    QFile inputFile1("D:/2qt projects/DBMSconsole/user.txt");
+    QFile inputFile1("./user.txt");
     if(!inputFile1.open(QIODevice::ReadOnly))
     {
-        cout<<"´ò¿ªuser.txtÎÄ¼şÊ§°Ü£¡"<<endl;
+        cout<<"Failed to open user.txtï¼"<<endl;
         return 3;
     }
     QTextStream in1(&inputFile1);
@@ -326,8 +328,8 @@ int regUser(string username,string password)
     inputFile1.close();
 
 
-    QFile f("D:/2qt projects/DBMSconsole/usernum.txt");
-    QFile f1("D:/2qt projects/DBMSconsole/user.txt");
+    QFile f("./usernum.txt");
+    QFile f1("./user.txt");
 
     f1.open(QIODevice::Append|QIODevice::Text);
     f.open(QIODevice::WriteOnly);
@@ -347,7 +349,7 @@ int regUser(string username,string password)
     f1.close();
 
     QDir *temp = new QDir;
-    QString folder = "D:/2qt projects/DBMSconsole/";
+    QString folder = "./";
     folder += QString::fromStdString(username);
     bool exist = temp->exists(folder);
     if(!exist)
@@ -360,77 +362,77 @@ int regUser(string username,string password)
 
 int sqlAnalysis(string sql,vector<string> &sqlkey)
 {
-	
+    return 0;
 }
 
 int createDBEntity(string DBname)
 {
-	
+    return 0;
 }
 
 int renameDBEntity(string newName,string oldName)
 {
-	
+    return 0;
 }
 
 int dropDBEntity(string DBname)
 {
-	
+    return 0;
 }
 
 int useDBEntity(string DBname)
 {
-	
+    return 0;
 }
 
-int initDBEntity(string DBname)//1´ú±í³õÊ¼»¯Ê§°Ü£¬0´ú±í³É¹¦
+int initDBEntity(string DBname)//1ä»£è¡¨åˆå§‹åŒ–å¤±è´¥ï¼Œ0ä»£è¡¨æˆåŠŸ
 {
 	if(dropDBEntity(DBname)!=0) return 1;
 	if(createDBEntity(DBname)!=0) return 1;
 	return 0;
 }
 
-int backupDBEntity(string DBname)//±¸·İÊı¾İ¿â
+int backupDBEntity(string DBname)//å¤‡ä»½æ•°æ®åº“
+{
+    return 0;
+}
+
+int createTable(string TBname,string DBname,vector<Field> fields)//åˆ›å»ºè¡¨
+{
+    return 0;
+}
+
+int dropTable(string TBname,string DBname)//åˆ é™¤è¡¨
+{
+     return 0;
+}
+
+int deleteField(string TBname,string DBname,string colname)//åˆ é™¤è¡¨ä¸­ä¸€åˆ—
+{
+    return 0;
+}
+
+int addField(string TBname,string DBname,Field col)//å¢åŠ ä¸€åˆ—
+{
+    return 0;
+}
+
+int modifyCol(string TBname,string DBname,string oldname,string newname,string type,int length,bool notnull)//ä¿®æ”¹ä¸€åˆ—çš„åç§°åŠç±»å‹
 {
 
 }
 
-int createTable(string TBname,string DBname,vector<Field> fields)//´´½¨±í
+int renameTable(string TBname,string DBname,string newname)//é‡å‘½åè¡¨
 {
 
 }
 
-int dropTable(string TBname,string DBname)//É¾³ı±í
+int removePri(string TBname,string DBname)//åˆ é™¤ä¸»é”®
 {
 
 }
 
-int deleteField(string TBname,string DBname,string colname)//É¾³ı±íÖĞÒ»ÁĞ
-{
-
-}
-
-int addField(string TBname,string DBname,Field col)//Ôö¼ÓÒ»ÁĞ
-{
-
-}
-
-int modifyCol(string TBname,string DBname,string oldname,string newname,string type,int length,bool notnull)//ĞŞ¸ÄÒ»ÁĞµÄÃû³Æ¼°ÀàĞÍ
-{
-
-}
-
-int renameTable(string TBname,string DBname,string newname)//ÖØÃüÃû±í
-{
-
-}
-
-int removePri(string TBname,string DBname)//É¾³ıÖ÷¼ü
-{
-
-}
-
-int addPri(string TBname,string DBname,string priname,vector<string> colnames)//ÎªÒ»µ½¶àÁĞÌí¼ÓÖ÷¼ü
+int addPri(string TBname,string DBname,string priname,vector<string> colnames)//ä¸ºä¸€åˆ°å¤šåˆ—æ·»åŠ ä¸»é”®
 {
 
 }
