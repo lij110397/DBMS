@@ -9,7 +9,8 @@
 #include <QDir>
 #include <vector>
 #include <set>
-#include <QDebug>
+#include <windows.h>
+#include <map>
 //宏定义
 #define UNLEN 5//用户名最大长度
 #define PWDLEN 10//密码最大长度
@@ -18,107 +19,135 @@ using namespace  std;
 //结构体
 typedef struct
 {
-    int year;
-    int month;
-    int day;
-    int hour;
-    int minute;
-    int second;
-}Date;
+    QString username;
+    QString password;
+}User;
 typedef struct
 {
-    string name;//字段名
-    string type;//类型
-    int length;//长度
-    int constraint[7];
-    /*七种约束条件，值为0代表无，其余代表有
-     * 0代表主键，1代表外键，2代表unique，
-     * 3代表check（1代表检查值是否存在于set中，2代表检查值是否在最大和最小值之间，3代表是否在两日期范围中），
-     * 4代表default（1代表整型，2代表字符串，3代表日期），
-     * 5代表非空，
-     * 6代表自增*/
-
-    set<string> scope;//取值的集合
-    Date mindate;//最早日期
-    Date maxdate;//最晚日期
-    int minvalue;//最小值
-    int maxvalue;//最大值
-
-    int defaultint;//默认整型
-    string defaultchar;//默认字符串
-    Date defaultdate;//默认日期
+    QString name;//字段名
+    QString type;//字段类型
 }Field;
+typedef struct
+{
+    QString name;//约束条件名
+    int type;//约束条件类型，0代表主键，1代表外键，2代表unique，3代表not null，4代表check，5代表default
+    vector<QString> colnos;//施加约束的列，主键允许加于多列
+
+    //外键需要
+    QString outertable;//参考的表名
+    QString outerprino;//参考的列名
+
+    //check需要
+    int type;//0代表是连续型范围，存在最大和最小值；1代表是离散型范围，用集合表示，值从集合的元素中选择
+    QString max;//最大值
+    QString min;//最小值
+    set<QString> valueset;//取值的集合
+
+    //defalut需要
+    QString defaultvalue;//默认值
+}Constraint;
 //全局变量
 int a[] = {4, 5, 3, 2, 4, 5, 1};//加密用整型数组
+//辅助功能函数
+/*类型转换函数*/
+string inttostring(int tempint);
+string doubletostring(double d);
+string floattostring(float f);
+string qstringtostring(QString qs);
+string booltostring(bool b);
+
+QString inttoqstring(int i);
+QString doubletoqstring(double d);
+QString floattoqstring(float f);
+QString booltoqstring(bool b);
+
+int qstringtoint(QString qs);
+float qstringtofloat(QString qs);
+double qstringtodouble(QString qs);
+bool qstringtobool(QString qs);
+
+int stringtoint(string s);
+float stringtofloat(string s);
+double stringtodouble(string s);
+QString stringtoqstring(string s);
+bool stringtobool(string s);
 //功能函数
 /*用户管理模块*/
-string EnterPassword();//输入密码，返回值为输入的密码
-bool JudgeUser(string username,string password);//判断用户名和密码是否存在、是否匹配
+QString EnterPassword();//输入密码，返回值为输入的密码
+bool JudgeUser(User user);//判断用户名和密码是否存在、是否匹配
 void encryption(string& c, int a[]);//对写入文件的密码进行加密操作
 void decode(string& c,int a[]);//解密
-int regUser(string username,string password);//注册用户
-
+int regUser(User user);//注册用户
+/*SQL语句分析*/
 int sqlAnalysis(string sql,vector<string> &sqlkey);//解析sql语法并返回各部分内容
 /*数据库管理模块*/
-int showdatabases();//查看当前用户下所有数据库
-int createDBEntity(string DBname);//创建数据库实体
-int renameDBEntity(string newName,string oldName);//重命名数据库实体
-int dropDBEntity(string DBname);//删除数据库实体
-int useDBEntity(string DBname);//打开并使用数据库
-int initDBEntity(string DBname);//初始化数据库
-int backupDBEntity(string DBname);//备份数据库
+void showdatabases(QString user);//在屏幕上打印当前用户的所有数据库名
+int createDBEntity(QString user,QString DBname);//创建数据库实体
+int renameDBEntity(QString user,QString newName,QString oldName);//重命名数据库实体
+int dropDBEntity(QString user,QString DBname);//删除数据库实体
+int useDBEntity(QString user,QString DBname);//打开并使用数据库
+int initDBEntity(QString user,QString DBname);//初始化数据库
+int backupDBEntity(QString user,QString DBname);//备份数据库
 /*表管理模块*/
-int createTable(string TBname,string DBname,vector<Field> fields);//创建表
-int dropTable(string TBname,string DBname);//删除表
-int deleteField(string TBname,string DBname,string colname);//删除表中一列
-int addField(string TBname,string DBname,Field col);//增加一列
-int modifyCol(string TBname,string DBname,string oldname,string newname,string type,int length,bool notnull);//修改一列的名称及类型
-int renameTable(string TBname,string DBname,string newname);//重命名表
-int removePri(string TBname,string DBname);//删除主键
-int addPri(string TBname,string DBname,string priname,vector<string> colnames);//为一到多列添加主键
+void showtables(QString user,QString DBname);//在屏幕上打印当前用户当前数据库下的所有表名
+int createTable(QString user,QString DBname,QString TBname,vector<Field> fields,vector<Constraint> constraints);//创建表
+int dropTable(QString user,QString DBname,QString TBname);//删除表
+int deleteField(QString user,QString DBname,QString TBname,QString col);//删除表中一列
+int addField(QString user,QString DBname,QString TBname,Field col,bool notnull);//增加一列，只允许添加非空约束条件，true代表添加，false代表不添加
+int modifyCol(QString user,QString DBname,QString oldname,QString newname,QString type,bool notnull);//修改一列的名称及类型，只允许添加非空约束条件，true代表添加，false代表不添加
+int renameTable(QString user,QString DBname,QString oldname,QString newname);//重命名表
+int removePri(QString user,QString DBname,QString TBname);//删除主键
+int addPri(QString user,QString DBname,QString TBname,Constraint primarykey);//为一到多列添加主键
 /*记录管理模块*/
-int insertRecord(string TBname,string DBname,vector<string> colnames);//插入记录TODO:
-int updateRecord(string TBname,string DBname,string colname);//更新记录TODO:
-int selectRecord(string TBname,string DBname,vector<string> colnames);//查询记录TODO:
-int deleteRecord(string TBname,string DBname);//删除记录TODO:
+int insertRecord(QString user,QString DBname,QString TBname,vector<map<QString,QString>> records);//插入记录
+int updateRecord(QString user,QString DBname,QString TBname,vector<map<QString,QString>> colnames);//更新记录
+int selectRecord(QString user,QString DBname,vector<QString> TBnames,vector<QString> colname,vector<int> rdno);//查询记录，传入参数为列名和记录的序号
+int deleteRecord(QString user,QString DBname,QString TBname,QString TBname,int rdno);//删除记录，传入参数为记录的序号
+vector<int> analyzeWhere(QString condition);//传入参数为where筛选条件，返回值为记录序号的集合
+vector<int> analyzeGroupby(QString condition);//传入参数为groupby筛选条件，返回值为记录序号的集合
 /*索引管理模块*/
-int createIndex(string TBname,string DBname,string indexname,vector<string> colnames);//建立索引
+int createIndex(QString user,QString DBname,QString TBname,QString indexname,vector<QString> colnames);//建立索引，传入参数为建立索引的列名
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+    User user;
+    User reg;
+    reg.username="";//注册用的用户名
+    reg.password="";//注册用的密码
 
-    string username = "";
-    string password = "";
-
-    switch(regUser("zzz00","xyzzzzzz"))//TODO:测试用
-    {
-    case 0:
-        cout<<"Registion success!"<<endl;
-        break;
-    case 1:
-        cout<<"Registion failed because this user exists"<<endl;
-        break;
-    case 2:
-        cout<<"Registion failed because account or password is not valid"<<endl;//账号最多5位最少1位，密码最多10位最少1位，只能由字母（区分大小写）和数字组成
-        break;
-    case 3:
-        cout<<"Registion failed because of system error"<<endl;//一般是文件不存在
-        break;
-    default:
-        break;
-    }
+//     switch(regUser(reg))//TODO:测试用
+//     {
+//     case 0:
+//         cout<<"Registion success!"<<endl;
+//         break;
+//     case 1:
+//         cout<<"Registion failed because this user exists"<<endl;
+//         break;
+//     case 2:
+//         cout<<"Registion failed because account or password is not valid"<<endl;//账号最多5位最少1位，密码最多10位最少1位，只能由字母（区分大小写）和数字组成
+//         break;
+//     case 3:
+//         cout<<"Registion failed because of system error"<<endl;//一般是文件不存在
+//         break;
+//     default:
+//         break;
+//     }
 
     while(1)
     {
         cout<<"Please input account";//默认账号是root
-        cin>>username;
+        string u;
+        cin>>u;
+	user.username = QString::fromStdString(u);
         getchar();
         cout<<"Please input password";//默认密码是root
-        password = EnterPassword();
-        if(JudgeUser(username,password))
+        user.password = EnterPassword();
+        if(JudgeUser(user))
         {
             cout<<"Logon success"<<endl;
-            string curDBname = "";
+	    cout<<"sql>>";
+	    QString curuser = user.username;
+            QString curDBname = "";
 			while(1)
 			{
 				int sqlType;//sql命令的类型，包括创建数据库、创建表、添加字段等正确操作，之后可扩展添加语法错误检查
@@ -129,50 +158,14 @@ int main(int argc, char *argv[])
                 sqlType = sqlAnalysis(sql,sqlkey);
                 switch(sqlType)
 				{
-                case 0: //创建数据库
-                    switch(createDBEntity(sqlkey.at(1)))//TODO:
-					{
-					case 0:
-                        cout<<"Create database success!"<<endl;
-						break;
-					default:
-						break;
-					}
-					break;
-                case 1: //重命名数据库，语法规则：RENAME database olddbname TO newdbname
-                    switch(renameDBEntity(sqlkey.at(1), NULL))//TODO:
-					{
-					case 0:
-                        cout<<"Rename database success!"<<endl;
-						break;
-					default:
-						break;
-					}
-					break;
-				case 2:
-                    switch(dropDBEntity(sqlkey.at(1)))//TODO:
-					{
-					case 0:
-                        cout<<"Delete database success!"<<endl;
-						break;
-					default:
-						break;
-					}
-					break;
-				case 3:
-                    switch(useDBEntity(sqlkey.at(1)))//TODO:
-					{
-					case 0:
-                        curDBname = useDBEntity(sqlkey.at(1));
-                        cout<<"Change database success!"<<endl;
-						break;
-					default:
-						break;
-					}
-					break;
-				default:
-					break;
-				}
+                case 0: //显示全部数据库
+			showdatabases(curuser);
+			break;
+		case 1:
+			break;
+		default:
+			break;
+		}
 			}
         }
         else
@@ -184,7 +177,7 @@ int main(int argc, char *argv[])
     return a.exec();
 }
 
-string EnterPassword()
+QString EnterPassword()
 {
     char password[100];
     int index=0;
@@ -213,35 +206,24 @@ string EnterPassword()
         }
     }
     string p(password);
-    return p;
+    QString qp=QString::fromStdString(p);
+    return qp;
 }
 
-bool JudgeUser(string username,string password)
+bool JudgeUser(User user)
 {
     int usernum = 0;
     QString u,p;
     // 指定文件：
-    QFile inputFile("./usernum.txt");
+    QFile inputFile1("./DBMS/user.txt");
     // 只读打开：
-    if(!inputFile.open(QIODevice::ReadOnly))
+    if(!inputFile1.open(QIODevice::ReadOnly|QIODevice::Text))
     {
-        cout<<"Failed to open usernum.txt"<<endl;
-        return false;
-    }
-    // 文本流：
-    QTextStream in(&inputFile);
-    // 将文本流读取到字符串中：
-    QString line = in.readAll();
-    // 关闭文本流：
-    inputFile.close();
-    usernum = line.toInt();
-    QFile inputFile1("./user.txt");
-    if(!inputFile1.open(QIODevice::ReadOnly))
-    {
-        cout<<"Failed to open user.txt"<<endl;
+        cout<<"打开user.txt文件失败！"<<endl;
         return false;
     }
     QTextStream in1(&inputFile1);
+    usernum = in1.readLine().toInt();
     for(int i=0;i<usernum;i++)
     {
         u = in1.readLine();
@@ -250,7 +232,9 @@ bool JudgeUser(string username,string password)
         u1 = u.toStdString();
         p1 = p.toStdString();
         decode(p1,a);
-        if(u1==username&&p1==password)
+        u=stringtoqstring(u1);
+        p=stringtoqstring(p1);
+        if(u==user.username&&p==user.password)
             return true;
     }
     inputFile1.close();
@@ -280,7 +264,7 @@ void decode(string& c,int a[]){
     }
 }
 
-int regUser(string username,string password)
+int regUser(User user)
 {
     if(username.size()>(unsigned)UNLEN||password.size()>(unsigned)PWDLEN) return 2;
     for(int i=0;(unsigned)i<username.size();i++)
@@ -293,64 +277,42 @@ int regUser(string username,string password)
     }
     int usernum = 0;
     // 指定文件：
-    QFile inputFile("./usernum.txt");
-    // 只读打开：
-    qDebug()<<QDir::currentPath();
-    if(!inputFile.open(QIODevice::ReadOnly))
+    QFile f1("./DBMS/user.txt");
+    if(!f1.open(QIODevice::ReadOnly|QIODevice::Text))
     {
-        cout<<"Failed to open usernum.txt"<<endl;
+        cout<<"打开user.txt文件失败！"<<endl;
         return 3;
     }
-    // 文本流：
-    QTextStream in(&inputFile);
-    // 将文本流读取到字符串中：
-    QString line = in.readAll();
-    // 关闭文本流：
-    inputFile.close();
-    usernum = line.toInt();
-    QFile inputFile1("./user.txt");
-    if(!inputFile1.open(QIODevice::ReadOnly))
-    {
-        cout<<"Failed to open user.txt！"<<endl;
-        return 3;
-    }
-    QTextStream in1(&inputFile1);
+    QTextStream in1(&f1);
+    usernum = in1.readLine().toInt();
     for(int i=0;i<usernum;i++)
     {
         QString u,p;
         u = in1.readLine();
         p = in1.readLine();
-        string u1;
-        u1 = u.toStdString();
-        if(u1==username)
+        if(u==user.username)
             return 1;
     }
-    inputFile1.close();
-
-
-    QFile f("./usernum.txt");
-    QFile f1("./user.txt");
-
-    f1.open(QIODevice::Append|QIODevice::Text);
-    f.open(QIODevice::WriteOnly);
-    QTextStream qts3(&f);
+    f1.close();
+    f1.open(QIODevice::WriteOnly|QIODevice::Text);
     usernum++;
     QString qusernum = QString::number(usernum,10);
-    qts3<<qusernum;
-    f.flush();
-    f.close();
+    qts2<<qusernum;
+    f1.flush();
+    f1.close();
+    f1.open(QIODevice::Append|QIODevice::Text);
     QTextStream qts2(&f1);
-    QString u = QString::fromStdString(username);
-    encryption(password,a);
-    QString p = QString::fromStdString(password);
-    qts2<<u<<endl;
+    string p1 = user.password.toStdString();
+    encryption(p1,a);
+    QString p = QString::fromStdString(p1);
+    qts2<<user.username<<endl;
     qts2<<p<<endl;
     f1.flush();
     f1.close();
 
     QDir *temp = new QDir;
-    QString folder = "./";
-    folder += QString::fromStdString(username);
+    QString folder = "./DBMS/";
+    folder += user.username;
     bool exist = temp->exists(folder);
     if(!exist)
     {
@@ -358,81 +320,240 @@ int regUser(string username,string password)
         if(ok) return 0;
         else return 3;
     }
+    QFile f2(folder+"/database.txt");
+    f2.open(QIODevice::WriteOnly|QIODevice::Text);
+    QTextStream qts4(&f2);
+    qts4<<QString::number(0,10)<<endl;
+    f2.flush();
+    f2.close();
 }
 
 int sqlAnalysis(string sql,vector<string> &sqlkey)
 {
-    return 0;
+	
 }
 
-int createDBEntity(string DBname)
-{
-    return 0;
-}
-
-int renameDBEntity(string newName,string oldName)
-{
-    return 0;
-}
-
-int dropDBEntity(string DBname)
-{
-    return 0;
-}
-
-int useDBEntity(string DBname)
-{
-    return 0;
-}
-
-int initDBEntity(string DBname)//1代表初始化失败，0代表成功
-{
-	if(dropDBEntity(DBname)!=0) return 1;
-	if(createDBEntity(DBname)!=0) return 1;
-	return 0;
-}
-
-int backupDBEntity(string DBname)//备份数据库
-{
-    return 0;
-}
-
-int createTable(string TBname,string DBname,vector<Field> fields)//创建表
-{
-    return 0;
-}
-
-int dropTable(string TBname,string DBname)//删除表
-{
-     return 0;
-}
-
-int deleteField(string TBname,string DBname,string colname)//删除表中一列
-{
-    return 0;
-}
-
-int addField(string TBname,string DBname,Field col)//增加一列
-{
-    return 0;
-}
-
-int modifyCol(string TBname,string DBname,string oldname,string newname,string type,int length,bool notnull)//修改一列的名称及类型
+void showdatabases(QString user)//在屏幕上打印当前用户的所有数据库
 {
 
 }
 
-int renameTable(string TBname,string DBname,string newname)//重命名表
+int createDBEntity(QString user,QString DBname)//创建数据库实体
+{
+
+    return 1;
+}
+
+int renameDBEntity(QString user,QString newName,QString oldName)//重命名数据库实体
+{
+
+    return 1;
+}
+
+int dropDBEntity(QString user,QString DBname)//删除数据库实体
+{
+
+    return 1;
+}
+
+int useDBEntity(QString user,QString DBname)//打开并使用数据库
+{
+
+    return 1;
+}
+
+int initDBEntity(QString user,QString DBname)//初始化数据库
+{
+    if(dropDBEntity(user,DBname)!=1) return -1;//删除失败
+    if(createDBEntity(user,name)!=1) return -2;//创建失败
+    return 1;
+}
+
+int backupDBEntity(QString user,QString DBname)//备份数据库
+{
+
+    return 1;
+}
+
+void showtables(QString user,QString DBname)//在屏幕上打印当前用户当前数据库下的所有表名
 {
 
 }
 
-int removePri(string TBname,string DBname)//删除主键
+int createTable(QString user,QString DBname,QString TBname,vector<Field> fields,vector<Constraint> constraints)//创建表
+{
+    return 1;
+}
+
+int dropTable(QString user,QString DBname,QString TBname)//删除表
+{
+    return 1;
+}
+
+int deleteField(QString user,QString DBname,QString TBname,QString col)//删除表中一列
+{
+    return 1;
+}
+
+int addField(QString user,QString DBname,QString TBname,Field col,bool notnull)//增加一列，只允许添加非空约束条件，true代表添加，false代表不添加
+{
+    return 1;
+}
+
+int modifyCol(QString user,QString DBname,QString oldname,QString newname,QString type,bool notnull)//修改一列的名称及类型，只允许添加非空约束条件，true代表添加，false代表不添加
+{
+    return 1;
+}
+
+int renameTable(QString user,QString DBname,QString oldname,QString newname)//重命名表
+{
+    return 1;
+}
+
+int removePri(QString user,QString DBname,QString TBname)//删除主键
+{
+    return 1;
+}
+
+int addPri(QString user,QString DBname,QString TBname,Constraint primarykey)//为一到多列添加主键
+{
+    return 1;
+}
+
+int insertRecord(QString user,QString DBname,QString TBname,vector<map<QString,QString>> records)//插入记录
+{
+    return 1;
+}
+
+int updateRecord(QString user,QString DBname,QString TBname,vector<map<QString,QString>> colnames)//更新记录
+{
+    return 1;
+}
+
+int selectRecord(QString user,QString DBname,vector<QString> TBnames,vector<QString> colname,vector<int> rdno)//查询记录，传入参数为列名和记录的序号
+{
+    return 1;
+}
+
+int deleteRecord(QString user,QString DBname,QString TBname,QString TBname,int rdno)//删除记录，传入参数为记录的序号
+{
+    return 1;
+}
+
+vector<int> analyzeWhere(QString condition)//传入参数为where筛选条件，返回值为记录序号的集合
 {
 
 }
 
-int addPri(string TBname,string DBname,string priname,vector<string> colnames)//为一到多列添加主键
+vector<int> analyzeGroupby(QString condition)//传入参数为groupby筛选条件，返回值为记录序号的集合
 {
 
+}
+
+int createIndex(QString user,QString DBname,QString TBname,QString indexname,vector<QString> colnames)//建立索引，传入参数为建立索引的列名
+{
+    return 1;
+}
+
+string inttostring(int tempint){
+    char t[256];
+    string s;
+    sprintf(t, "%d", tempint);
+    s = t;
+    return s;
+}
+
+string doubletostring(double d)
+{
+    char t[256];
+    string s;
+    sprintf(t, "%lf", d);
+    s = t;
+    return s;
+}
+
+string floattostring(float f)
+{
+    char t[256];
+    string s;
+    sprintf(t, "%f", f);
+    s = t;
+    return s;
+}
+
+string qstringtostring(QString qs)
+{
+    return qs.toStdString();
+}
+
+string booltostring(bool b)
+{
+    if(b) return "T";
+    else return "F";
+}
+
+int stringtoint(string s)
+{
+    return stoi(s);
+}
+
+float stringtofloat(string s)
+{
+    return stof(s);
+}
+
+double stringtodouble(string s)
+{
+    return stod(s);
+}
+
+QString stringtoqstring(string s)
+{
+    return QString::fromStdString(s);
+}
+
+bool stringtobool(string s)
+{
+    if(s=="T") return true;
+    else return false;
+}
+
+QString inttoqstring(int i)
+{
+    return stringtoqstring(inttostring(i));
+}
+
+QString doubletoqstring(double d)
+{
+    return stringtoqstring(doubletostring(d));
+}
+
+QString floattoqstring(float f)
+{
+    return stringtoqstring(floattostring(f));
+}
+
+QString booltoqstring(bool b)
+{
+    return stringtoqstring(booltostring(b));
+}
+
+int qstringtoint(QString qs)
+{
+    return stringtoint(qstringtostring(qs));
+}
+
+float qstringtofloat(QString qs)
+{
+    return stringtofloat(qstringtostring(qs));
+}
+
+double qstringtodouble(QString qs)
+{
+    return stringtodouble(qstringtostring(qs));
+}
+
+bool qstringtobool(QString qs)
+{
+    return stringtobool((qstringtostring(qs)));
 }
