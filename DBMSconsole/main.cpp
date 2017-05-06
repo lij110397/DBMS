@@ -163,27 +163,39 @@ int main(int argc, char *argv[])
                     if(createDBEntity(curuser,sqlkey.at(0))==1)
                         cout<<"Create database successfully!"<<endl;
                     else
-                        cout<<"syntax error!"<<endl;
+                    {
+
+                    }
                     break;
                 case 1://重命名数据库
                     if(renameDBEntity(curuser,sqlkey.at(0),sqlkey.at(1))==1)
                         cout<<"Rename database successfully!"<<endl;
-                    else cout<<"syntax error!"<<endl;
+                    else
+                    {
+
+                    }
                     break;
                 case 2://删除数据库
                     if(dropDBEntity(curuser,sqlkey.at(0))==1)
                         cout<<"Drop database successfully!"<<endl;
                     else
-                        cout<<"syntax error!"<<endl;
+                    {
+
+                    }
                     break;
                 case 3://使用数据库
                     if(useDBEntity(curuser,sqlkey.at(0))==1)
                     {
-                        cout<<"Dabase changed."<<endl;
+                        cout<<"Database changed."<<endl;
                         curDBname = sqlkey.at(0);
                     }
                     else
-                        cout<<"syntax error!"<<endl;
+                    {
+
+                    }
+                    break;
+                case -1:
+                    cout<<"syntax error!"<<endl;
                     break;
 				default:
 					break;
