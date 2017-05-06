@@ -147,13 +147,17 @@ int regUser(User user)
     if(!exist)
     {
         bool ok = temp->mkdir(folder);
-        if(ok) return 0;
+        if(ok)
+        {
+            QFile f2(folder+"/database.txt");
+            f2.open(QIODevice::WriteOnly|QIODevice::Text);
+            QTextStream qts4(&f2);
+            qts4<<QString::number(0,10)<<endl;
+            f2.flush();
+            f2.close();
+            return 0;
+        }
         else return 3;
     }
-    QFile f2(folder+"/database.txt");
-    f2.open(QIODevice::WriteOnly|QIODevice::Text);
-    QTextStream qts4(&f2);
-    qts4<<QString::number(0,10)<<endl;
-    f2.flush();
-    f2.close();
+    return 0;
 }
