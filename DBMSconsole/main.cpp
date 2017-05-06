@@ -9,7 +9,6 @@
 #include <QDir>
 #include <vector>
 #include <set>
-#include <windows.h>
 #include <map>
 //宏定义
 #define UNLEN 5//用户名最大长度
@@ -79,7 +78,7 @@ void encryption(string& c, int a[]);//对写入文件的密码进行加密操作
 void decode(string& c,int a[]);//解密
 int regUser(User user);//注册用户
 /*SQL语句分析*/
-int sqlAnalysis(string sql,vector<string> &sqlkey);//解析sql语法并返回各部分内容
+int sqlAnalysis(QString sql,vector<QString> &sqlkey);//解析sql语法并返回各部分内容
 /*数据库管理模块*/
 void showdatabases(QString user);//在屏幕上打印当前用户的所有数据库名
 int createDBEntity(QString user,QString DBname);//创建数据库实体
@@ -112,65 +111,88 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
     User user;
     User reg;
-    reg.username="";//注册用的用户名
-    reg.password="";//注册用的密码
+    reg.username="root";//注册用的用户名
+    reg.password="root";//注册用的密码
 
-//     switch(regUser(reg))//TODO:测试用
-//     {
-//     case 0:
-//         cout<<"Registion success!"<<endl;
-//         break;
-//     case 1:
-//         cout<<"Registion failed because this user exists"<<endl;
-//         break;
-//     case 2:
-//         cout<<"Registion failed because account or password is not valid"<<endl;//账号最多5位最少1位，密码最多10位最少1位，只能由字母（区分大小写）和数字组成
-//         break;
-//     case 3:
-//         cout<<"Registion failed because of system error"<<endl;//一般是文件不存在
-//         break;
-//     default:
-//         break;
-//     }
+    switch(regUser(reg))//TODO:测试用
+    {
+    case 0:
+        cout<<"Registion success!"<<endl;
+        break;
+    case 1:
+        cout<<"Registion failed because this user exists!"<<endl;
+        break;
+    case 2:
+        cout<<"Registion failed because account or password is not valid!"<<endl;//账号最多5位最少1位，密码最多10位最少1位，只能由字母（区分大小写）和数字组成
+        break;
+    case 3:
+        cout<<"Registion failed because of system error!"<<endl;//一般是文件不存在
+        break;
+    default:
+        break;
+    }
 
     while(1)
     {
-        cout<<"Please input account";//默认账号是root
+        cout<<"Please input account:";//默认账号是root
         string u;
         cin>>u;
-	user.username = QString::fromStdString(u);
+        user.username = QString::fromStdString(u);
         getchar();
-        cout<<"Please input password";//默认密码是root
+        cout<<"Please input password:";//默认密码是root
         user.password = EnterPassword();
         if(JudgeUser(user))
         {
-            cout<<"Logon success"<<endl;
-	    cout<<"sql>>";
-	    QString curuser = user.username;
+            cout<<"Login success!"<<endl;
+
+            QString curuser = user.username;
             QString curDBname = "";
 			while(1)
 			{
+                cout<<"sql>>";
 				int sqlType;//sql命令的类型，包括创建数据库、创建表、添加字段等正确操作，之后可扩展添加语法错误检查
-				string sql;//输入的sql命令
-				vector<string> sqlkey;
+                string sql;//输入的sql命令
+                vector<QString> sqlkey;
 				
-				getline(cin,sql);//TODO:暂时没考虑换行的问题，即一句SQL语句是在一行中写完的，以分号结尾
-                sqlType = sqlAnalysis(sql,sqlkey);
+                getline(cin,sql);//TODO:暂时没考虑换行的问题，即一句SQL语句是在一行中写完的，以分号结尾
+                QString qsql = stringtoqstring(sql);
+                sqlType = sqlAnalysis(qsql,sqlkey);
                 switch(sqlType)
 				{
-                case 0: //显示全部数据库
-			showdatabases(curuser);
-			break;
-		case 1:
-			break;
-		default:
-			break;
-		}
+                case 0://创建数据库
+                    if(createDBEntity(curuser,sqlkey.at(0))==1)
+                        cout<<"Create database successfully!"<<endl;
+                    else
+                        cout<<"syntax error!"<<endl;
+                    break;
+                case 1://重命名数据库
+                    if(renameDBEntity(curuser,sqlkey.at(0),sqlkey.at(1))==1)
+                        cout<<"Rename database successfully!"<<endl;
+                    else cout<<"syntax error!"<<endl;
+                    break;
+                case 2://删除数据库
+                    if(dropDBEntity(curuser,sqlkey.at(0))==1)
+                        cout<<"Drop database successfully!"<<endl;
+                    else
+                        cout<<"syntax error!"<<endl;
+                    break;
+                case 3://使用数据库
+                    if(useDBEntity(curuser,sqlkey.at(0))==1)
+                    {
+                        cout<<"Dabase changed."<<endl;
+                        curDBname = sqlkey.at(0);
+                    }
+                    else
+                        cout<<"syntax error!"<<endl;
+                    break;
+				default:
+					break;
+				}
 			}
         }
         else
         {
-            cout<<"Acount or passeord is not valid,please reenter"<<endl;
+            cout<<"Acount or passeord is not valid,please reenter..."<<endl;
         }
     }
 
@@ -219,7 +241,7 @@ bool JudgeUser(User user)
     // 只读打开：
     if(!inputFile1.open(QIODevice::ReadOnly|QIODevice::Text))
     {
-        cout<<"打开user.txt文件失败！"<<endl;
+        cout<<"open file user.txt failed!"<<endl;
         return false;
     }
     QTextStream in1(&inputFile1);
@@ -266,21 +288,22 @@ void decode(string& c,int a[]){
 
 int regUser(User user)
 {
-    if(username.size()>(unsigned)UNLEN||password.size()>(unsigned)PWDLEN) return 2;
-    for(int i=0;(unsigned)i<username.size();i++)
+    vector<QString> lines;
+    if(user.username.size()>UNLEN||user.password.size()>PWDLEN) return 2;
+    for(int i=0;i<user.username.size();i++)
     {
-        if(!((username[i]<='z'&&username[i]>='a')||(username[i]<='Z'&&username[i]>='A')||(username[i]<='9'&&username[i]>='0'))) return 2;
+        if(!((user.username[i]<='z'&&user.username[i]>='a')||(user.username[i]<='Z'&&user.username[i]>='A')||(user.username[i]<='9'&&user.username[i]>='0'))) return 2;
     }
-    for(int i=0;(unsigned)i<password.size();i++)
+    for(int i=0;i<user.password.size();i++)
     {
-        if(!((password[i]<='z'&&password[i]>='a')||(password[i]<='Z'&&password[i]>='A')||(password[i]<='9'&&password[i]>='0'))) return 2;
+        if(!((user.password[i]<='z'&&user.password[i]>='a')||(user.password[i]<='Z'&&user.password[i]>='A')||(user.password[i]<='9'&&user.password[i]>='0'))) return 2;
     }
     int usernum = 0;
     // 指定文件：
     QFile f1("./DBMS/user.txt");
     if(!f1.open(QIODevice::ReadOnly|QIODevice::Text))
     {
-        cout<<"打开user.txt文件失败！"<<endl;
+        cout<<"open file user.txt failed!"<<endl;
         return 3;
     }
     QTextStream in1(&f1);
@@ -289,7 +312,9 @@ int regUser(User user)
     {
         QString u,p;
         u = in1.readLine();
+        lines.push_back(u);
         p = in1.readLine();
+        lines.push_back(p);
         if(u==user.username)
             return 1;
     }
@@ -297,16 +322,17 @@ int regUser(User user)
     f1.open(QIODevice::WriteOnly|QIODevice::Text);
     usernum++;
     QString qusernum = QString::number(usernum,10);
-    qts2<<qusernum;
-    f1.flush();
-    f1.close();
-    f1.open(QIODevice::Append|QIODevice::Text);
-    QTextStream qts2(&f1);
+    QTextStream qts1(&f1);
+    qts1<<qusernum<<endl;
+    for (vector<QString>::iterator iter=lines.begin();iter!=lines.end();iter++)
+    {
+        qts1<<(*iter)<<endl;
+    }
     string p1 = user.password.toStdString();
     encryption(p1,a);
     QString p = QString::fromStdString(p1);
-    qts2<<user.username<<endl;
-    qts2<<p<<endl;
+    qts1<<user.username<<endl;
+    qts1<<p<<endl;
     f1.flush();
     f1.close();
 
@@ -328,9 +354,37 @@ int regUser(User user)
     f2.close();
 }
 
-int sqlAnalysis(string sql,vector<string> &sqlkey)
+int sqlAnalysis(QString sql,vector<QString> &sqlkey)
 {
-	
+    vector<QString> regVector;          //存放正则表达式
+    vector<int> regSize;                //对应的正则表达式要获取几个值，如create需要获取database名
+
+    regVector.push_back(QString("create(?:\\s*)database(?:\\s*)(\\b[a-z0-9_]+\\b)(?:\\s*);"));      //匹配创建数据库的正则
+    regSize.push_back(1);
+    regVector.push_back(QString("rename(?:\\s*)database(?:\\s*)(\\b[a-z0-9_]+\\b)(?:\\s*)to(?:\\s*)(\\b[a-z0-9_]+\\b)(?:\\s*);"));     //匹配重命名数据库的正则
+    regSize.push_back(2);
+    regVector.push_back(QString("drop(?:\\s*)database(?:\\s*)(\\b[a-z0-9_]+\\b)(?:\\s*);"));        //匹配删除数据库的正则
+    regSize.push_back(1);
+    regVector.push_back(QString("use(?:\\s*)database(?:\\s*)(\\b[a-z0-9_]+\\b)(?:\\s*);"));         //匹配使用数据库的正则
+    regSize.push_back(1);
+
+    //开始解析sql语句
+    for (unsigned int i = 0; i < regVector.size(); i++)
+    {
+        QRegExp reg(regVector[i]);
+        int pos = reg.indexIn(sql);       //匹配的第一个字符的位置，从0开始，若为-1则不匹配
+
+        if (pos >= 0)                      //若匹配
+        {
+            for (int j = 0; j < regSize[i]; j++)
+            {
+                sqlkey.push_back(reg.cap(j + 1));   //将对应的值放入sqlkey
+            }
+            return i;                    //返回数据库操作对应的编号，从0开始
+        }
+    }
+
+    return -1;                              //没有对应的操作，返回-1，表示该类型操作暂未支持，或者sql语句错误
 }
 
 void showdatabases(QString user)//在屏幕上打印当前用户的所有数据库
@@ -365,13 +419,12 @@ int useDBEntity(QString user,QString DBname)//打开并使用数据库
 int initDBEntity(QString user,QString DBname)//初始化数据库
 {
     if(dropDBEntity(user,DBname)!=1) return -1;//删除失败
-    if(createDBEntity(user,name)!=1) return -2;//创建失败
+    if(createDBEntity(user,DBname)!=1) return -2;//创建失败
     return 1;
 }
 
 int backupDBEntity(QString user,QString DBname)//备份数据库
 {
-
     return 1;
 }
 
@@ -435,7 +488,7 @@ int selectRecord(QString user,QString DBname,vector<QString> TBnames,vector<QStr
     return 1;
 }
 
-int deleteRecord(QString user,QString DBname,QString TBname,QString TBname,int rdno)//删除记录，传入参数为记录的序号
+int deleteRecord(QString user,QString DBname,QString TBname,int rdno)//删除记录，传入参数为记录的序号
 {
     return 1;
 }
