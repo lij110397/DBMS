@@ -1,0 +1,70 @@
+所有对象命名规范：
+只允许大小写字母和下划线
+
+语法规范：所有SQL语句在一行中输入完毕；暂时不支持多表连接
+
+一.用户层级
+1.注册用户：
+create user 用户名 identified by 密码;
+2.连接到另一用户：
+connect to 用户名/密码;
+
+二.数据库层级
+1.创建数据库：
+create database 数据库名;
+删除数据库：
+2.drop database 数据库名;
+重命名数据库：
+rename database 旧名 to 新名;
+3.使用数据库：
+use 数据库名;
+4.显示当前用户的所有数据库名：
+show databases;
+5.初始化数据库：
+initialize database 数据库名;
+6.备份数据库
+backup database 数据库名;
+
+三.表和字段层级
+1.显示当前数据库下所有表名：
+show tables;
+2.创建表：
+create table 表名(字段名 字段类型 【约束条件类型】,
+...
+【primary key(字段名,字段名...)】);//这是在一行里的
+3.删除表：
+drop table 表名;
+4.删除表中一列：
+alter table 表名 drop column 字段名;
+5.增加一列：
+alter table 表名 add column 字段名 【约束条件类型】;
+6.修改一列的名称及类型：
+alter table 表名 modify 旧名 新名 新类型 【约束条件类型】;
+7.重命名表：
+rename table 旧名 to 新名;
+8.删除主键：
+alter table 表名 drop primary key;
+9.为一列或多列添加主键：
+alter table 表名 add primary key(字段名,字段名...);
+
+四.记录层级
+1.插入记录
+insert into 表名【(字段名,字段名...)】
+values(值,值,值...);（注意，作为值的字符串都要加单引号）//这是在一行里的
+2.删除记录
+delete from 表名
+where 条件;
+3.更新记录
+update 表名
+set 字段名=值,字段名=值...
+where 条件;（注意，作为值的字符串都要加单引号）//这是在一行里的
+4.查询记录
+select 字段名,字段名...
+from 表名
+where 条件
+group by 字段名
+having 条件;//这是在一行里的
+
+五.索引
+创建索引
+create index 索引名 on 表名(字段名,字段名,字段名...);
