@@ -19,12 +19,12 @@ int deleteField(QString user,QString DBname,QString TBname,QString col)//É¾³ı±íÖ
     return 1;
 }
 
-int addField(QString user,QString DBname,QString TBname,Field col,bool notnull)//Ôö¼ÓÒ»ÁĞ£¬Ö»ÔÊĞíÌí¼Ó·Ç¿ÕÔ¼ÊøÌõ¼ş£¬true´ú±íÌí¼Ó£¬false´ú±í²»Ìí¼Ó
+int addField(QString user,QString DBname,QString TBname,Field col,Constraint constraint)//Ôö¼ÓÒ»ÁĞ£¬Ö»ÔÊĞíÌí¼ÓÁĞÒ»¼¶Ô¼ÊøÌõ¼ş
 {
     return 1;
 }
 
-int modifyCol(QString user,QString DBname,QString oldname,QString newname,QString type,bool notnull)//ĞŞ¸ÄÒ»ÁĞµÄÃû³Æ¼°ÀàĞÍ£¬Ö»ÔÊĞíÌí¼Ó·Ç¿ÕÔ¼ÊøÌõ¼ş£¬true´ú±íÌí¼Ó£¬false´ú±í²»Ìí¼Ó
+int modifyCol(QString user,QString DBname,QString oldname,QString newname,QString type,Constraint constraint)//ĞŞ¸ÄÒ»ÁĞµÄÃû³Æ¼°ÀàĞÍ£¬Ö»ÔÊĞíÌí¼ÓÁĞÒ»¼¶Ô¼ÊøÌõ¼ş
 {
     return 1;
 }

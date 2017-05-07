@@ -33,8 +33,8 @@ void showtables(QString user,QString DBname);//ÔÚÆÁÄ»ÉÏ´òÓ¡µ±Ç°ÓÃ»§µ±Ç°Êı¾İ¿âÏÂµ
 int createTable(QString user,QString DBname,QString TBname,vector<Field> fields,vector<Constraint> constraints);//´´½¨±í
 int dropTable(QString user,QString DBname,QString TBname);//É¾³ı±í
 int deleteField(QString user,QString DBname,QString TBname,QString col);//É¾³ı±íÖĞÒ»ÁĞ
-int addField(QString user,QString DBname,QString TBname,Field col,bool notnull);//Ôö¼ÓÒ»ÁĞ£¬Ö»ÔÊĞíÌí¼Ó·Ç¿ÕÔ¼ÊøÌõ¼ş£¬true´ú±íÌí¼Ó£¬false´ú±í²»Ìí¼Ó
-int modifyCol(QString user,QString DBname,QString oldname,QString newname,QString type,bool notnull);//ĞŞ¸ÄÒ»ÁĞµÄÃû³Æ¼°ÀàĞÍ£¬Ö»ÔÊĞíÌí¼Ó·Ç¿ÕÔ¼ÊøÌõ¼ş£¬true´ú±íÌí¼Ó£¬false´ú±í²»Ìí¼Ó
+int addField(QString user,QString DBname,QString TBname,Field col,Constraint constraint);//Ôö¼ÓÒ»ÁĞ£¬Ö»ÔÊĞíÌí¼ÓÁĞÒ»¼¶Ô¼ÊøÌõ¼ş
+int modifyCol(QString user,QString DBname,QString oldname,QString newname,QString type,Constraint constraint);//ĞŞ¸ÄÒ»ÁĞµÄÃû³Æ¼°ÀàĞÍ£¬Ö»ÔÊĞíÌí¼Ó·Ç¿ÕÔ¼ÊøÌõ¼ş£¬true´ú±íÌí¼Ó£¬false´ú±í²»Ìí¼Ó
 int renameTable(QString user,QString DBname,QString oldname,QString newname);//ÖØÃüÃû±í
 int removePri(QString user,QString DBname,QString TBname);//É¾³ıÖ÷¼ü
 int addPri(QString user,QString DBname,QString TBname,Constraint primarykey);//ÎªÒ»µ½¶àÁĞÌí¼ÓÖ÷¼ü
