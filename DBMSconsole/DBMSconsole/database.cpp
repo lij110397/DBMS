@@ -22,9 +22,10 @@ int dropDBEntity(QString user,QString DBname)//删除数据库实体
     return 1;
 }
 
-int useDBEntity(QString user,QString DBname)//打开并使用数据库
+int useDBEntity(QString user,QString DBname,QString &curDBname)//打开并使用数据库
 {
 
+    //如果存在，那么curDBname=DBname;
     return 1;
 }
 

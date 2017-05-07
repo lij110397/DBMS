@@ -89,10 +89,9 @@ int main(int argc, char *argv[])
                     }
                     break;
                 case 3://使用数据库
-                    if(useDBEntity(curuser,sqlkey.at(0))==1)
+                    if(useDBEntity(curuser,sqlkey.at(0),curDBname)==1)
                     {
                         cout<<"Database changed."<<endl;
-                        curDBname = sqlkey.at(0);
                     }
                     else
                     {
